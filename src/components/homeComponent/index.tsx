@@ -11,6 +11,7 @@ export default function HomeComponent() {
   const [editForm] = Form.useForm();
 
   const data = useAppSelector((state) => state.crudReducer.data);
+  const loadingAdd = useAppSelector((state) => state.crudReducer.status);
   const dispatch = useAppDispatch();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -22,6 +23,7 @@ export default function HomeComponent() {
     setIsModalOpen(true);
   };
 
+  console.warn('loadingAdd', loadingAdd)
   const showEditModal = () => {
     setIsEditModalOpen(true);
   };
@@ -71,8 +73,8 @@ export default function HomeComponent() {
           <Button style={{border:'1px solid gray'}} onClick={() => {
             setUserData(data)
             showEditModal();
-            editForm.setFieldValue('Title', data?.title)
-            editForm.setFieldValue('content', data?.body)
+            editForm.setFieldValue('title', data?.title)
+            editForm.setFieldValue('body', data?.body)
             }}>Edit</Button>
         </div>
       )
@@ -80,14 +82,14 @@ export default function HomeComponent() {
   ]
 
   const onFinish = async(values: any) => {
-    const data = await dispatch(addData(values))
-    dispatch(fetchData())
+    await dispatch(addData({...values, id:Math.random()}))
     handleCancel();
+    form.setFieldValue('title', "")
+    form.setFieldValue('body', "")
   }
 
   const onEditFinish = async (values: any) => {
-    const data = await dispatch(updateData({ index: userData?.id, newItem: values }));
-    dispatch(fetchData())
+   await dispatch(updateData({ index: userData?.id, newItem: values }));
     handleEditModalCancel();
   }
   return (
@@ -106,7 +108,7 @@ export default function HomeComponent() {
             layout="vertical"
           >
             <Form.Item
-              name="Title"
+              name="title"
               label={"Title"}
               rules={[
                 {
@@ -119,7 +121,7 @@ export default function HomeComponent() {
               <Input placeholder="enter title..." />
             </Form.Item>
             <Form.Item
-              name="content"
+              name="body"
               label={"Content"}
               rules={[
                 {
@@ -131,7 +133,7 @@ export default function HomeComponent() {
             
               <Input placeholder="type here.." />
               </Form.Item>
-            <Button htmlType="submit" type='primary'>Submit</Button>
+            <Button htmlType="submit" type='primary'  loading={loadingAdd} disabled={loadingAdd}>Submit</Button>
             </Form>
       </Modal>
 
@@ -146,7 +148,7 @@ export default function HomeComponent() {
             layout="vertical"
           >
             <Form.Item
-              name="Title"
+              name="title"
               label={"Title"}
               rules={[
                 {
@@ -159,7 +161,7 @@ export default function HomeComponent() {
               <Input placeholder="enter title..." />
             </Form.Item>
             <Form.Item
-              name="content"
+              name="body"
               label={"Content"}
               rules={[
                 {
@@ -178,7 +180,6 @@ export default function HomeComponent() {
         onOk={() =>{ 
           dispatch(removeData(userData?.id));
           setIsConfirmModalOpen(false);
-          dispatch(fetchData())
         }}
         onCancel={() => setIsConfirmModalOpen(false)}>
           <p style={{color:"red"}}>This action cannot be undone</p>

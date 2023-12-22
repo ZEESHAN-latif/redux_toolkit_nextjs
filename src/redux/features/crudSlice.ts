@@ -4,13 +4,13 @@ import axios from "axios";
 // Define the type for the state
 type CrudState = {
   data: any[];
-  status: "idle" | "loading" | "succeeded" | "failed";
+  status: boolean;
   error: string | null;
 };
 
 const initialState: CrudState = {
   data: [],
-  status: "idle",
+  status: false,
   error: null,
 };
 
@@ -48,27 +48,29 @@ export const crud = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(fetchData.pending, (state) => {
-        state.status = "loading";
-      })
       .addCase(fetchData.fulfilled, (state, action: PayloadAction<any[]>) => {
-        state.status = "succeeded";
+        state.status = false;
         state.data = action.payload;
       })
-      .addCase(fetchData.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.error.message || null;
+      .addCase(addData.pending, (state) => {
+        state.status = true;
       })
       .addCase(addData.fulfilled, (state, action: PayloadAction<any>) => {
-        state.data.push(action.payload);
+        state.status = false;
+        state.data.unshift({...action.payload, id:Math.floor(Math.random() * 1000)});
+      })
+      .addCase(addData.rejected, (state, action) => {
+        state.status = false;
+        state.error = action.error.message || null;
       })
       .addCase(updateData.fulfilled, (state, action: PayloadAction<any>) => {
-        // Assuming the API returns the updated item
         const updatedItem = action.payload;
-        // state.data[updatedItem?.index] = updatedItem.newItem;
+        const findObj = state.data.findIndex((item) => item?.id === updatedItem?.id)
+        state.data[findObj] = updatedItem
       })
       .addCase(removeData.fulfilled, (state, action: PayloadAction<number>) => {
-        state.data.splice(action.payload, 1);
+        const filterItem = state.data?.filter((z) => z?.id != action.payload)
+        state.data = filterItem
       });
   },
 });
