@@ -30,13 +30,10 @@ export const addData = createAsyncThunk("crud/addData", async (newItem: any) => 
 });
 
 // Create an async thunk for updating data
-export const updateData = createAsyncThunk(
-  "crud/updateData",
-  async ({ index, newItem }: { index: number; newItem: any }) => {
-    const response = await axios.put(`${apiUrl}/${index}`, newItem);
-    return response.data;
-  }
-);
+export const updateData = createAsyncThunk("crud/updateData", async ({ index, newItem }: { index: any, newItem: any }, thunkAPI) => {
+  const response = await axios.put(`${apiUrl}/${index}`, newItem);
+  return response.data;
+});
 
 // Create an async thunk for removing data
 export const removeData = createAsyncThunk("crud/removeData", async (index: number) => {
@@ -55,7 +52,6 @@ export const crud = createSlice({
         state.status = "loading";
       })
       .addCase(fetchData.fulfilled, (state, action: PayloadAction<any[]>) => {
-        console.warn('succeeded')
         state.status = "succeeded";
         state.data = action.payload;
       })
@@ -69,7 +65,7 @@ export const crud = createSlice({
       .addCase(updateData.fulfilled, (state, action: PayloadAction<any>) => {
         // Assuming the API returns the updated item
         const updatedItem = action.payload;
-        state.data[updatedItem.index] = updatedItem.newItem;
+        // state.data[updatedItem?.index] = updatedItem.newItem;
       })
       .addCase(removeData.fulfilled, (state, action: PayloadAction<number>) => {
         state.data.splice(action.payload, 1);
